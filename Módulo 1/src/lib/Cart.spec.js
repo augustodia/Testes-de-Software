@@ -67,5 +67,30 @@ describe('Cart', () => {
 
       expect(cart.checkout()).toMatchSnapshot(); // Pega o valor do retorno e grava na pasta _snapshots. Ao mudar quebra o teste.
     });
+
+    it('should return an object with the total and the list of items when sumary() is called', () => {
+      cart.add({
+        product,
+        quantity: 4,
+      });
+      cart.add({
+        product: product2,
+        quantity: 2,
+      });
+
+      expect(cart.sumary()).toMatchSnapshot(); // Pega o valor do retorno e grava na pasta _snapshots. Ao mudar quebra o teste.
+      expect(cart.getTotal()).toBeGreaterThan(0); // Certifique-se que existe pelo menos 1 produto com price > 0
+    });
+
+    it('should reset the cart when checkout() is called', () => {
+      cart.add({
+        product: product2,
+        quantity: 2,
+      });
+
+      cart.checkout();
+
+      expect(cart.getTotal()).toEqual(0);
+    });
   });
 });
