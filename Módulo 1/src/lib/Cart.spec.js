@@ -16,7 +16,7 @@ describe('Cart', () => {
 
   describe('getTotal', () => {
     it('should return 0 when getTotal() is executed in a newly created instance ', () => {
-      expect(cart.getTotal()).toEqual(0);
+      expect(cart.getTotal().getAmount()).toEqual(0);
     });
 
     it('should multiply quantity and price and receive the total ammount', () => {
@@ -25,7 +25,7 @@ describe('Cart', () => {
         quantity: 2, //70776
       };
       cart.add(item);
-      expect(cart.getTotal()).toEqual(70776);
+      expect(cart.getTotal().getAmount()).toEqual(70776);
     });
 
     it('should ensure no more than on product exists at a time', () => {
@@ -37,7 +37,7 @@ describe('Cart', () => {
         product,
         quantity: 1,
       });
-      expect(cart.getTotal()).toEqual(35388);
+      expect(cart.getTotal().getAmount()).toEqual(35388);
     });
 
     it('should update total when a product gets included an then removed', () => {
@@ -50,7 +50,7 @@ describe('Cart', () => {
         quantity: 1,
       });
       cart.remove(product);
-      expect(cart.getTotal()).toEqual(41872);
+      expect(cart.getTotal().getAmount()).toEqual(41872);
     });
   });
 
@@ -79,7 +79,7 @@ describe('Cart', () => {
       });
 
       expect(cart.sumary()).toMatchSnapshot(); // Pega o valor do retorno e grava na pasta _snapshots. Ao mudar quebra o teste.
-      expect(cart.getTotal()).toBeGreaterThan(0); // Certifique-se que existe pelo menos 1 produto com price > 0
+      expect(cart.getTotal().getAmount()).toBeGreaterThan(0); // Certifique-se que existe pelo menos 1 produto com price > 0
     });
 
     it('should reset the cart when checkout() is called', () => {
@@ -90,7 +90,38 @@ describe('Cart', () => {
 
       cart.checkout();
 
-      expect(cart.getTotal()).toEqual(0);
+      expect(cart.getTotal().getAmount()).toEqual(0);
+    });
+  });
+
+  describe('especial conditions', () => {
+    it('should apply percentage discount quantity above minimum is passed', () => {
+      const condition = {
+        percentage: 30,
+        minimum: 2,
+      };
+
+      cart.add({
+        product,
+        condition,
+        quantity: 3,
+      });
+
+      expect(cart.getTotal().getAmount()).toEqual(74315);
+    });
+
+    it('should apply quantity discount for even quantities', () => {
+      const condition = {
+        quantity: 2,
+      };
+
+      cart.add({
+        product,
+        condition,
+        quantity: 4,
+      });
+
+      expect(cart.getTotal().getAmount()).toEqual(70776);
     });
   });
 });
