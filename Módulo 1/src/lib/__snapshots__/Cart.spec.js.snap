@@ -18,12 +18,17 @@ exports[`Cart checkout should return an object with the total and the list of it
       "quantity": 2,
     },
   ],
-  "total": 225296,
+  "total": {
+    "amount": 225296,
+    "currency": "BRL",
+    "precision": 2,
+  },
 }
 `;
 
-exports[`Cart checkout should return an object with the total and the list of items when sumary() is called 1`] = `
+exports[`Cart checkout should return an object with the total and the list of items when summary() is called 1`] = `
 {
+  "formatted": "R$2,252.96",
   "items": [
     {
       "product": {
@@ -40,6 +45,10 @@ exports[`Cart checkout should return an object with the total and the list of it
       "quantity": 2,
     },
   ],
-  "total": 225296,
+  "total": {
+    "amount": 225296,
+    "currency": "BRL",
+    "precision": 2,
+  },
 }
 `;
