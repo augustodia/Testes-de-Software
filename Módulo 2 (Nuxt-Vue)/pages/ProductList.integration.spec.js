@@ -16,37 +16,67 @@ describe('Product - integration', () => {
   beforeEach(() => {
     server = makeServer({ environment: 'test' });
   });
+
   afterEach(() => {
     server.shutdown();
-  });
-  it('should mount the component', () => {
-    const wrapper = mount(ProductList);
-    expect(wrapper.vm).toBeDefined();
+    jest.clearAllMocks();
   });
 
-  it('should mount the Seach component as a child', () => {
-    const wrapper = mount(ProductList);
-    expect(wrapper.findComponent(Search)).toBeDefined();
-  });
-  it('should call axios.get on component mount', () => {
-    mount(ProductList, {
+  const getProducts = (quantity = 10, overrides = []) => {
+    let overrideList = [];
+    if (overrides.length > 0) {
+      overrideList = overrides.map((override) =>
+        server.create('product', override)
+      );
+    }
+    const products = [
+      ...server.createList('product', quantity),
+      ...overrideList,
+    ];
+
+    return products;
+  };
+
+  const mountProductList = async (
+    quantity = 10,
+    overrides = [],
+    shouldReject = false
+  ) => {
+    const products = getProducts(quantity, overrides);
+    if (shouldReject) {
+      axios.get.mockReturnValue(Promise.reject(new Error('')));
+    } else {
+      axios.get.mockReturnValue(Promise.resolve({ data: { products } }));
+    }
+    const wrapper = mount(ProductList, {
       mocks: {
         $axios: axios,
       },
     });
+
+    await nextTick();
+
+    return { wrapper, products };
+  };
+
+  it('should mount the component', async () => {
+    const { wrapper } = await mountProductList();
+    expect(wrapper.vm).toBeDefined();
+  });
+
+  it('should mount the Seach component as a child', async () => {
+    const { wrapper } = await mountProductList();
+    expect(wrapper.findComponent(Search)).toBeDefined();
+  });
+  it('should call axios.get on component mount', async () => {
+    await mountProductList();
 
     expect(axios.get).toHaveBeenCalledTimes(1);
     expect(axios.get).toHaveBeenCalledWith('/api/products');
   });
 
   it('should mount the ProductCard component 10 times', async () => {
-    const products = server.createList('product', 10);
-    axios.get.mockReturnValue(Promise.resolve({ data: { products } }));
-    const wrapper = mount(ProductList, {
-      mocks: {
-        $axios: axios,
-      },
-    });
+    const { wrapper } = await mountProductList();
 
     await nextTick();
     const cards = wrapper.findAllComponents(ProductCard);
@@ -54,14 +84,45 @@ describe('Product - integration', () => {
   });
 
   it('should display the error message when Promise reject', async () => {
-    axios.get.mockReturnValue(Promise.reject(new Error('')));
-    const wrapper = mount(ProductList, {
-      mocks: {
-        $axios: axios,
-      },
-    });
+    const { wrapper } = await mountProductList(10, [], true);
 
     await nextTick();
     expect(wrapper.text()).toContain('Problemas ao carregar a lista!');
+  });
+
+  it('should filter the product list when a search is performed', async () => {
+    const { wrapper } = await mountProductList(10, [
+      {
+        title: 'Meu relógio amado',
+      },
+      {
+        title: 'Meu outro relógio estimado',
+      },
+    ]);
+
+    const search = wrapper.findComponent(Search);
+    search.find('input[type="search"]').setValue('relógio');
+    await search.find('form').trigger('submit');
+
+    const cards = wrapper.findAllComponents(ProductCard);
+    expect(wrapper.vm.searchTerm).toEqual('relógio');
+    expect(cards).toHaveLength(2);
+  });
+  it('should filter the product list when a search is performed and cleared', async () => {
+    const { wrapper } = await mountProductList(10, [
+      {
+        title: 'Meu relógio amado',
+      },
+    ]);
+
+    const search = wrapper.findComponent(Search);
+    search.find('input[type="search"]').setValue('relógio');
+    await search.find('form').trigger('submit');
+    search.find('input[type="search"]').setValue('');
+    await search.find('form').trigger('submit');
+
+    const cards = wrapper.findAllComponents(ProductCard);
+    expect(wrapper.vm.searchTerm).toEqual('');
+    expect(cards).toHaveLength(11);
   });
 });
