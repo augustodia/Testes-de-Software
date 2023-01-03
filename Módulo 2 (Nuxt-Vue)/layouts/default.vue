@@ -32,6 +32,7 @@
           </div>
           <div class="flex items-center justify-end w-full">
             <button
+              data-testid="toggle-button"
               class="text-gray-600 focus:outline-none mx-4 sm:mx-0"
               @click="toggleCart"
             >
@@ -127,7 +128,7 @@ export default {
   },
   methods: {
     toggleCart() {
-      this.isCartOpen() ? this.$cart.close() : this.$cart.open();
+      this.isCartOpen ? this.$cart.close() : this.$cart.open();
     },
   },
 };
