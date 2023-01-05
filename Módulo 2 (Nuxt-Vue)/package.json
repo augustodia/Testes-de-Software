@@ -14,7 +14,8 @@
     "prepare": "husky install",
     "test": "jest",
     "test:watch": "jest --verbose --watchAll",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "cypress": "./node_modules/.bin/cypress open"
   },
   "lint-staged": {
     "*.{js,vue}": "eslint --cache",
@@ -41,6 +42,7 @@
     "autoprefixer": "^10.4.13",
     "babel-core": "7.0.0-bridge.0",
     "babel-jest": "^29.1.2",
+    "cypress": "^12.3.0",
     "eslint": "^8.24.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-jest": "^27.0.4",
